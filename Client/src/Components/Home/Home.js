@@ -1,16 +1,8 @@
 import React from "react";
-import HomeLandingContainer from "./HomeLandingContainer";
-import CardBelowHome from "./CardBelowHome";
-import PlanningToAdoptAPet from "./PlanningToAdoptAPet";
+import LandingPage from "../Landing/LandingPage";
 
-const Home = (props) => {
-  return (
-    <>
-      <HomeLandingContainer description={props.description} />
-      <CardBelowHome />
-      <PlanningToAdoptAPet />
-    </>
-  );
+const Home = () => {
+  return <LandingPage />;
 };
 
 export default Home;

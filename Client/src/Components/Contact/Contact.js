@@ -1,39 +1,55 @@
 import React from "react";
-import developerPng from "./images/developer-png.png";
+import { SITE } from "../../config/site";
+import "./contact.css";
 
 const Contact = () => {
   return (
-    <div className="contactUs-main-container">
-      <div className="contactUs-left-para">
-        <h3>Let's get in touch</h3>
-        <i class="fa fa-envelope"></i>
-        <a class="mail-links" href="mailto:kashifkzmi5@gmail.com">
-          kashifkzmi5@gmail.com
-        </a>
+    <div className="contact-premium">
+      <section className="contact-hero">
+        <img
+          src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=1200&q=80"
+          alt=""
+          loading="lazy"
+        />
+        <div>
+          <h1>Let&apos;s talk</h1>
+          <p>
+            Reach {SITE.team[0].name} &amp; {SITE.team[1].name} for partnerships,
+            adoption support, or emergency coordination.
+          </p>
+        </div>
+      </section>
 
-        <i class="fa fa-linkedin"></i>
-        <a class="mail-links" href="https://www.linkedin.com/in/kashiekzmi/">
-          User Name: kashiekzmi
+      <div className="contact-cards">
+        <a className="contact-card" href={`mailto:${SITE.email}`}>
+          <i className="fa fa-envelope" aria-hidden="true" />
+          <h2>Email</h2>
+          <p>{SITE.email}</p>
         </a>
-
-        <i class="fa fa-github"></i>
-        <a class="mail-links" href="https://github.com/KaShiekzmi">
-          KaShiekzmi
+        <a className="contact-card" href={SITE.phoneTel}>
+          <i className="fa fa-phone" aria-hidden="true" />
+          <h2>Phone</h2>
+          <p>+91 {SITE.phone}</p>
         </a>
-
-        <i class="fa fa-instagram"></i>
-        <a class="mail-links" href="https://www.instagram.com/kaxhie_x/">
-          @kaxhie_x
-        </a>
-
-        <i class="fa fa-phone"></i>
-        <a class="mail-links" href="tel:+923019583959">
-          +92 301 9583959
+        <a
+          className="contact-card"
+          href={SITE.social.instagram}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <i className="fa fa-instagram" aria-hidden="true" />
+          <h2>Instagram</h2>
+          <p>Follow updates</p>
         </a>
       </div>
-      <div className="contactUs-pic">
-        <img src={developerPng} alt="Profile"/>
-      </div>
+
+      <section className="contact-note">
+        <h2>Office hours</h2>
+        <p>
+          Rescue desk: 24×7 hotline via phone · Admin &amp; adoption counselling:
+          10:00 – 19:00 IST (Mon–Sat).
+        </p>
+      </section>
     </div>
   );
 };

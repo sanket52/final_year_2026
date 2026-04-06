@@ -1,8 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { API_BASE, getToken, authHeaders } from "../../utils/api";
 
 function AdoptForm(props) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const pet = props.pet || location.state?.pet;
+
   const [email, setEmail] = useState("");
   const [phoneNo, setPhoneNo] = useState("");
+  const [userName, setUserName] = useState("");
+  const [address, setAddress] = useState("");
+  const [message, setMessage] = useState("");
   const [livingSituation, setLivingSituation] = useState("");
   const [previousExperience, setPreviousExperience] = useState("");
   const [familyComposition, setFamilyComposition] = useState("");
@@ -12,10 +23,40 @@ function AdoptForm(props) {
   const [SuccPopup, setSuccPopup] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const isEmailValid = (email) => {
-    const emailPattern = /^[a-zA-Z0-9._-]+@gmail\.com$/;
-    return emailPattern.test(email);
-  };
+  useEffect(() => {
+    if (user) {
+      setEmail(user.email || "");
+      setUserName(user.name || "");
+    }
+  }, [user]);
+
+  if (!pet) {
+    return (
+      <div className="custom-adopt-form-container">
+        <p style={{ padding: 24, maxWidth: 520 }}>
+          Select a pet on the Pets page and tap <strong>Request adoption</strong> to load this form
+          with that profile.
+        </p>
+        <button
+          type="button"
+          className="custom-cta-button"
+          style={{ marginLeft: 24, marginBottom: 24 }}
+          onClick={() => navigate("/pets")}
+        >
+          Browse pets
+        </button>
+      </div>
+    );
+  }
+
+  const petId = String(pet._id || pet.id || "");
+  const petName = pet.name || pet.breed || "Pet";
+  const petImage =
+    pet.filename && !pet.imageUrl
+      ? `${API_BASE}/images/${pet.filename}`
+      : pet.imageUrl || "";
+
+  const isEmailValid = (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,7 +67,8 @@ function AdoptForm(props) {
       !phoneNo ||
       !livingSituation ||
       !previousExperience ||
-      !familyComposition
+      !familyComposition ||
+      !userName.trim()
     ) {
       setFormError(true);
       return;
@@ -37,48 +79,51 @@ function AdoptForm(props) {
       return;
     }
 
+    const token = getToken();
+    if (!token) {
+      navigate("/login", { state: { from: location, message: "Please login first to continue." } });
+      return;
+    }
+
     try {
+      setIsSubmitting(true);
 
-      setIsSubmitting(true)
-
-      const response = await fetch('http://localhost:4000/form/save', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+      const response = await fetch(`${API_BASE}/api/adopt/request`, {
+        method: "POST",
+        headers: authHeaders(),
         body: JSON.stringify({
+          petId,
           email,
           phoneNo,
           livingSituation,
           previousExperience,
           familyComposition,
-          petId: props.pet._id
-        })
-      })
+          userName: userName.trim(),
+          address,
+          message,
+        }),
+      });
 
       if (!response.ok) {
-        setErrPopup(true)
+        setErrPopup(true);
         return;
-      } else {
-        setSuccPopup(true)
       }
-    }
-    catch (err) {
-      setErrPopup(true)
+      setSuccPopup(true);
+    } catch (err) {
+      setErrPopup(true);
       console.error(err);
-      return;
     } finally {
-      setIsSubmitting(false)
-
+      setIsSubmitting(false);
     }
 
     setEmailError(false);
     setFormError(false);
-    setEmail("");
     setPhoneNo("");
     setLivingSituation("");
     setPreviousExperience("");
     setFamilyComposition("");
+    setAddress("");
+    setMessage("");
   };
 
   return (
@@ -87,34 +132,40 @@ function AdoptForm(props) {
       <div className="form-pet-container">
         <div className="pet-details">
           <div className="pet-pic">
-            <img src={`http://localhost:4000/images/${props.pet.filename}`} alt={props.pet.name} />
+            {petImage && <img src={petImage} alt={petName} />}
           </div>
           <div className="pet-info">
-            <h2>{props.pet.name}</h2>
+            <h2>{petName}</h2>
             <p>
-              <b>Type:</b> {props.pet.type}
+              <b>Type:</b> {pet.type || pet.species || "—"}
             </p>
             <p>
-              <b>Age:</b> {props.pet.age}
+              <b>Age:</b> {pet.age || "—"}
             </p>
             <p>
-              <b>Location:</b> {props.pet.location}
+              <b>Location:</b> {pet.location || pet.area || "—"}
             </p>
           </div>
         </div>
         <div className="form-div">
           <form onSubmit={handleSubmit} className="custom-form">
             <div className="custom-input-box">
-              <div className="email-not-valid">
-                <label className="custom-label">Email:</label>
-                {emailError && (
-                  <p>
-                    Please provide valid email address.
-                  </p>
-                )}
-              </div>
+              <label className="custom-label">Your full name *</label>
               <input
                 type="text"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                className="custom-input"
+                required
+              />
+            </div>
+            <div className="custom-input-box">
+              <div className="email-not-valid">
+                <label className="custom-label">Email:</label>
+                {emailError && <p>Please provide valid email address.</p>}
+              </div>
+              <input
+                type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="custom-input"
@@ -123,9 +174,27 @@ function AdoptForm(props) {
             <div className="custom-input-box">
               <label className="custom-label">Phone No.</label>
               <input
-                type="text"
+                type="tel"
                 value={phoneNo}
                 onChange={(e) => setPhoneNo(e.target.value)}
+                className="custom-input"
+              />
+            </div>
+            <div className="custom-input-box">
+              <label className="custom-label">Address</label>
+              <input
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className="custom-input"
+              />
+            </div>
+            <div className="custom-input-box">
+              <label className="custom-label">Message (optional)</label>
+              <input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
                 className="custom-input"
               />
             </div>
@@ -157,20 +226,26 @@ function AdoptForm(props) {
               />
             </div>
             {formError && (
-              <p className="error-message">Please fill out all fields.</p>
+              <p className="error-message">Please fill out all required fields.</p>
             )}
-            <button disabled={isSubmitting} type="submit" className="custom-cta-button custom-m-b">
-              {isSubmitting ? 'Submitting' : 'Submit'}
+            <button
+              disabled={isSubmitting}
+              type="submit"
+              className="custom-cta-button custom-m-b"
+            >
+              {isSubmitting ? "Submitting" : "Submit"}
             </button>
             {ErrPopup && (
               <div className="popup">
                 <div className="popup-content">
-                  <h4>
-                    Oops!... Connection Error.
-                  </h4>
+                  <h4>Oops!... Connection Error.</h4>
                 </div>
-                <button onClick={(e) => (setErrPopup(!ErrPopup))} className="close-btn">
-                  Close <i className="fa fa-times"></i>
+                <button
+                  type="button"
+                  onClick={() => setErrPopup(false)}
+                  className="close-btn"
+                >
+                  Close <i className="fa fa-times" />
                 </button>
               </div>
             )}
@@ -178,14 +253,19 @@ function AdoptForm(props) {
               <div className="popup">
                 <div className="popup-content">
                   <h4>
-                    Adoption Form of {props.pet.name} is Submitted; we'll get in touch with you soon for further process.
+                    Adoption request for {petName} is submitted; we&apos;ll get in touch soon.
                   </h4>
                 </div>
-                <button onClick={(e) => {
-                  setSuccPopup(!SuccPopup);
-                  props.closeForm();
-                }} className="close-btn">
-                  Close <i className="fa fa-times"></i>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSuccPopup(false);
+                    if (props.closeForm) props.closeForm();
+                    else navigate("/pets");
+                  }}
+                  className="close-btn"
+                >
+                  Close <i className="fa fa-times" />
                 </button>
               </div>
             )}

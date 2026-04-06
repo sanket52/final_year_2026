@@ -53,6 +53,6 @@ We welcome contributions to improve PawFinds! To contribute, follow these steps:
 - Create a pull request explaining your changes.
 
 ## Contact Information
-For questions, please contact 
-- [GitHub](https://github.com/kashiekzmi)
-- [LinkedIn](https://www.linkedin.com/in/kashiekzmi)
+Maintainers: **Sanket** & **Abhishek**  
+- Email: [sanketbhardwaj413@gmail.com](mailto:sanketbhardwaj413@gmail.com)  
+- Phone: +91 7500790387

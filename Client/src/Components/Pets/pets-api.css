@@ -1,0 +1,146 @@
+.pets-api-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px 20px 72px;
+}
+
+.pets-api-hero {
+  margin-bottom: 28px;
+}
+
+.pets-api-hero h1 {
+  font-family: "Preahvihear", serif;
+  font-size: clamp(1.85rem, 3.5vw, 2.5rem);
+  color: #084149;
+  margin-bottom: 12px;
+}
+
+.pets-api-hero p {
+  color: #5c6478;
+  line-height: 1.6;
+  max-width: 720px;
+}
+
+.pets-api-badge {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #e8f6f4;
+  color: #0d5c63;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.pets-api-warn {
+  color: #a32020;
+  margin-top: 10px;
+}
+
+.pets-api-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.pets-api-toolbar label {
+  font-weight: 700;
+  color: #1a1d26;
+}
+
+.pets-api-toolbar select {
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid #d8dde8;
+  font-family: inherit;
+  background: #fff;
+}
+
+.pets-api-loading {
+  text-align: center;
+  padding: 48px;
+  color: #5c6478;
+  font-size: 1.05rem;
+}
+
+.pets-api-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.pets-api-card {
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(13, 92, 99, 0.08);
+  box-shadow: 0 14px 36px rgba(13, 92, 99, 0.08);
+}
+
+.pets-api-img-wrap {
+  position: relative;
+}
+
+.pets-api-img-wrap img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+.pets-api-species {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.pets-api-body {
+  padding: 18px 20px 22px;
+}
+
+.pets-api-body h2 {
+  font-family: "Varela Round", sans-serif;
+  font-size: 1.2rem;
+  color: #084149;
+  margin-bottom: 12px;
+}
+
+.pets-api-body p {
+  font-size: 0.88rem;
+  color: #444;
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+
+.pets-api-adopt-btn {
+  margin-top: 14px;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 999px;
+  background: #0d5c63;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pets-api-adopt-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(13, 92, 99, 0.25);
+}
+
+.pets-api-empty {
+  text-align: center;
+  padding: 40px;
+  color: #5c6478;
+}

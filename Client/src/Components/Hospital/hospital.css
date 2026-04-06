@@ -1,0 +1,143 @@
+.hospital-page {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 20px 20px 60px;
+}
+
+.hospital-hero {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 32px;
+  align-items: center;
+  margin-bottom: 48px;
+  background: #fff;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(13, 92, 99, 0.1);
+}
+
+.hospital-hero img {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+}
+
+.hospital-hero > div {
+  padding: 28px 32px 28px 0;
+}
+
+.hospital-hero h1 {
+  font-family: "Preahvihear", serif;
+  font-size: clamp(1.75rem, 3vw, 2.35rem);
+  color: #084149;
+  margin-bottom: 14px;
+}
+
+.hospital-hero p {
+  color: #5c6478;
+  line-height: 1.65;
+}
+
+.hospital-hero a {
+  color: #ff6b4a;
+  font-weight: 700;
+}
+
+@media (max-width: 800px) {
+  .hospital-hero {
+    grid-template-columns: 1fr;
+  }
+  .hospital-hero > div {
+    padding: 0 24px 24px;
+  }
+}
+
+.hospital-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.hospital-card {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  background: #fff;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.07);
+  border: 1px solid rgba(13, 92, 99, 0.07);
+}
+
+.hospital-card img {
+  width: 100%;
+  height: 100%;
+  min-height: 240px;
+  object-fit: cover;
+}
+
+.hospital-card-body {
+  padding: 26px 28px;
+}
+
+.hospital-card-body h2 {
+  font-family: "Varela Round", sans-serif;
+  font-size: 1.35rem;
+  color: #084149;
+  margin-bottom: 10px;
+}
+
+.hospital-addr {
+  color: #444;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.hospital-meta {
+  font-size: 0.92rem;
+  color: #5c6478;
+  margin-bottom: 8px;
+  line-height: 1.45;
+}
+
+.hospital-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.hospital-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.hospital-btn.primary {
+  background: linear-gradient(135deg, #ff6b4a, #ff8f73);
+  color: #fff;
+}
+
+.hospital-btn.ghost {
+  border: 2px solid #0d5c63;
+  color: #0d5c63;
+  background: #fff;
+}
+
+.hospital-footnote {
+  text-align: center;
+  color: #5c6478;
+  font-size: 0.92rem;
+  margin: 32px 0 16px;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .hospital-card {
+    grid-template-columns: 1fr;
+  }
+}
