@@ -26,6 +26,6 @@ const adoptFormSchema = new Schema({
         type: String,
         required: true
     }
-}, { timestamps: true})
+}, { timestamps: true, bufferCommands: false })
 
 module.exports = mongoose.model('AdoptForm', adoptFormSchema)

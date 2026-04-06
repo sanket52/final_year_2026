@@ -38,6 +38,6 @@ const PetSchema = new schema({
         type: String,
         required: true
     }
-}, {timestamps: true})
+}, { timestamps: true, bufferCommands: false })
 
 module.exports = mongoose.model('Pet', PetSchema);
