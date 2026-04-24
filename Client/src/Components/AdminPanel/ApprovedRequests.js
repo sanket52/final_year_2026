@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import PetCards from './PetCards'
+import { API_BASE } from "../../utils/api";
 
 const ApprovedRequests = () => {
   const [requests, setRequests] = useState([])
@@ -7,7 +8,7 @@ const ApprovedRequests = () => {
 
   const fetchRequests = async () => {
     try {
-      const response = await fetch('http://localhost:4000/approvedPets')
+      const response = await fetch(`${API_BASE}/approvedPets`)
       if (!response.ok) {
         throw new Error('An error occurred')
       }

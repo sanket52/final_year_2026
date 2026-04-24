@@ -132,3 +132,25 @@
   max-width: 80vw;
   min-width: 80vw;
 }
+
+.admin-users-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.admin-user-card {
+  border: 1px solid #f0d49a;
+  border-radius: 12px;
+  padding: 18px;
+  background: #fffaf0;
+}
+
+.admin-user-card h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.admin-user-card p {
+  margin: 8px 0;
+}

@@ -135,7 +135,13 @@ const AccidentRescue = () => {
 
           <label className="rescue-label">
             Pet photo (required)
-            <input type="file" accept="image/*" capture="environment" onChange={onImage} />
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={onImage}
+              required
+            />
           </label>
           {preview && (
             <img className="rescue-preview" src={preview} alt="Preview" loading="lazy" />

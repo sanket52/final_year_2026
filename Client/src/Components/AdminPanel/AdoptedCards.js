@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
+import { API_BASE } from "../../utils/api";
 
 const AdoptedCards = (props) => {
   const [showErrorPopup, setShowErrorPopup] = useState(false);
@@ -15,7 +16,7 @@ const AdoptedCards = (props) => {
  const handleReject = async () => {
     setIsDeleting(true)
     try {
-      const response = await fetch(`http://localhost:4000/delete/${props.pet._id}`, {
+      const response = await fetch(`${API_BASE}/delete/${props.pet._id}`, {
         method: 'DELETE'
       })
 
@@ -37,7 +38,7 @@ const AdoptedCards = (props) => {
     <div className='req-containter'>
       <div className='pet-view-card'>
         <div className='pet-card-pic'>
-          <img src={`http://localhost:4000/images/${props.pet.filename}`} alt={props.pet.name} />
+          <img src={`${API_BASE}/images/${props.pet.filename}`} alt={props.pet.name} />
         </div>
         <div className='pet-card-details'>
           <h2>{props.pet.name}</h2>

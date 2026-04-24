@@ -23,6 +23,8 @@ const img2 =
   "https://images.unsplash.com/photo-1513245543132-31f507179b6a?auto=format&fit=crop&w=600&q=80";
 const img3 =
   "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=600&q=80";
+const catFallback =
+  "https://cdn2.thecatapi.com/images/MTY3ODIyMQ.jpg";
 
 const services = [
   {
@@ -115,7 +117,16 @@ const LandingPage = () => {
         </div>
         <div className="lp-hero-collage">
           <img className="lp-hc-1" src={img1} alt="Happy dog" loading="eager" />
-          <img className="lp-hc-2" src={img2} alt="Cat portrait" loading="lazy" />
+          <img
+            className="lp-hc-2"
+            src={img2}
+            alt="Cat portrait"
+            loading="lazy"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = catFallback;
+            }}
+          />
           <img className="lp-hc-3" src={img3} alt="Pet with family" loading="lazy" />
         </div>
       </section>

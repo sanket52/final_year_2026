@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { API_BASE, getToken } from "../../utils/api";
+import React, { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { API_BASE, authHeadersMultipart, getToken } from "../../utils/api";
 import "./give-pet-premium.css";
 
-const DRAFT_KEY = "pawfinds_give_pet_draft";
-const STEPS = ["Owner", "Pet", "Review"];
-
-const emptyForm = {
+const initialForm = {
   ownerName: "",
   phone: "",
   address: "",
@@ -21,111 +20,145 @@ const emptyForm = {
   reason: "",
 };
 
+const REQUIRED_FIELDS = {
+  ownerName: "Owner name is required.",
+  phone: "Phone number is required.",
+  petName: "Pet name is required.",
+  petType: "Pet type is required.",
+  age: "Pet age is required.",
+  reason: "Reason is required.",
+};
+
 const GivePetPremiumForm = () => {
-  const [step, setStep] = useState(0);
-  const [form, setForm] = useState(emptyForm);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
+  const [form, setForm] = useState(initialForm);
   const [imageFile, setImageFile] = useState(null);
   const [preview, setPreview] = useState("");
   const [errors, setErrors] = useState({});
+  const [serverMessage, setServerMessage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(DRAFT_KEY);
-      if (raw) {
-        const d = JSON.parse(raw);
-        setForm((f) => ({ ...f, ...d.form }));
-        if (d.step) setStep(d.step);
+    setForm((current) => ({
+      ...current,
+      ownerName: current.ownerName || user?.name || "",
+      phone: current.phone || user?.phone || "",
+      city: current.city || user?.city || "",
+    }));
+  }, [user]);
+
+  useEffect(() => {
+    return () => {
+      if (preview) {
+        URL.revokeObjectURL(preview);
       }
-    } catch {
-      /* ignore */
-    }
-  }, []);
+    };
+  }, [preview]);
 
-  const saveDraft = useCallback(() => {
-    localStorage.setItem(
-      DRAFT_KEY,
-      JSON.stringify({ form, step, savedAt: Date.now() })
-    );
-    setToast({ type: "info", text: "Draft saved on this device." });
-    setTimeout(() => setToast(null), 2500);
-  }, [form, step]);
+  const requiredFields = useMemo(() => Object.keys(REQUIRED_FIELDS), []);
 
-  const update = (k, v) => {
-    setForm((f) => ({ ...f, [k]: v }));
-    setErrors((e) => ({ ...e, [k]: null }));
+  const updateField = (key, value) => {
+    setForm((current) => ({ ...current, [key]: value }));
+    setErrors((current) => ({ ...current, [key]: "" }));
   };
 
-  const onFile = (e) => {
-    const f = e.target.files?.[0];
-    setImageFile(f || null);
-    if (preview) URL.revokeObjectURL(preview);
-    setPreview(f ? URL.createObjectURL(f) : "");
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0] || null;
+
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
+
+    setImageFile(file);
+    setPreview(file ? URL.createObjectURL(file) : "");
+    setErrors((current) => ({ ...current, image: "" }));
   };
 
-  const validateStep = (s) => {
-    const e = {};
-    if (s === 0) {
-      if (!form.ownerName.trim()) e.ownerName = "Required";
-      if (!form.phone.trim()) e.phone = "Required";
-      if (!form.address.trim()) e.address = "Required";
-      if (!form.city.trim()) e.city = "Required";
+  const validate = () => {
+    const nextErrors = {};
+
+    requiredFields.forEach((field) => {
+      if (!String(form[field] || "").trim()) {
+        nextErrors[field] = REQUIRED_FIELDS[field];
+      }
+    });
+
+    if (!imageFile) {
+      nextErrors.image = "Pet image is required.";
     }
-    if (s === 1) {
-      if (!form.petName.trim()) e.petName = "Required";
-      if (!form.petType) e.petType = "Select type";
-      if (!form.age.trim()) e.age = "Required";
-      if (!form.gender) e.gender = "Required";
-      if (!form.vaccinated) e.vaccinated = "Required";
-      if (!imageFile) e.image = "Photo required";
-    }
-    if (s === 2) {
-      if (!form.reason.trim()) e.reason = "Please explain";
-    }
-    setErrors(e);
-    return Object.keys(e).length === 0;
+
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
   };
 
-  const next = () => {
-    if (validateStep(step)) setStep((x) => Math.min(x + 1, 2));
+  const resetForm = () => {
+    setForm({
+      ...initialForm,
+      ownerName: user?.name || "",
+      phone: user?.phone || "",
+      city: user?.city || "",
+    });
+    setImageFile(null);
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
+    setPreview("");
+    setErrors({});
   };
-  const back = () => setStep((x) => Math.max(x - 1, 0));
 
-  const submit = async (e) => {
-    e.preventDefault();
-    if (!validateStep(2) || !validateStep(1) || !validateStep(0)) {
-      setStep(0);
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setServerMessage(null);
+
+    if (!validate()) {
       return;
     }
+
     const token = getToken();
     if (!token) {
-      setToast({ type: "err", text: "Please login first to continue." });
+      navigate("/login", {
+        state: {
+          from: location,
+          message: "Please login first to submit a give a pet request.",
+        },
+      });
       return;
     }
+
+    const payload = new FormData();
+    Object.entries(form).forEach(([key, value]) => {
+      payload.append(key, value.trim());
+    });
+    payload.append("image", imageFile);
+
     setSubmitting(true);
-    const fd = new FormData();
-    Object.entries(form).forEach(([k, v]) => fd.append(k, v));
-    fd.append("image", imageFile);
     try {
-      const res = await fetch(`${API_BASE}/api/give-pet`, {
+      const response = await fetch(`${API_BASE}/api/give-pet`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: fd,
+        headers: authHeadersMultipart(),
+        body: payload,
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Submit failed");
-      setToast({ type: "ok", text: data.message || "Submitted successfully!" });
-      localStorage.removeItem(DRAFT_KEY);
-      setForm(emptyForm);
-      setImageFile(null);
-      setPreview("");
-      setStep(0);
-    } catch (err) {
-      setToast({ type: "err", text: err.message });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || "Unable to submit request.");
+      }
+
+      setServerMessage({
+        type: "ok",
+        text: data.message || "Your give a pet request has been saved.",
+      });
+      resetForm();
+    } catch (error) {
+      setServerMessage({
+        type: "err",
+        text: error.message || "Unable to submit request.",
+      });
     } finally {
       setSubmitting(false);
-      setTimeout(() => setToast(null), 5000);
     }
   };
 
@@ -138,199 +171,199 @@ const GivePetPremiumForm = () => {
             "linear-gradient(105deg, rgba(8,65,73,0.88), rgba(255,107,74,0.55)), url(https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=1400&q=80)",
         }}
       >
-        <h2>Give a pet a new chapter</h2>
+        <h2>Give a pet a safe new home</h2>
         <p>
-          Premium intake form — your details are stored securely and reviewed by our team.
+          Fill in the required details, upload one pet photo, and we will save
+          your request in the system for review.
         </p>
       </div>
 
       <div className="gpp-card">
-        <div className="gpp-progress">
-          {STEPS.map((label, i) => (
-            <div
-              key={label}
-              className={`gpp-step ${i === step ? "active" : ""} ${i < step ? "done" : ""}`}
-            >
-              <span>{i + 1}</span>
-              {label}
-            </div>
-          ))}
+        <div className="gpp-note">
+          Fields marked with * are required. Other details are optional and help
+          the team understand the pet better.
         </div>
 
-        {toast && (
-          <div className={`gpp-toast gpp-toast-${toast.type}`}>{toast.text}</div>
+        {serverMessage && (
+          <div className={`gpp-toast gpp-toast-${serverMessage.type}`}>
+            {serverMessage.text}
+          </div>
         )}
 
-        <form onSubmit={step === 2 ? submit : (e) => e.preventDefault()}>
-          {step === 0 && (
-            <div className="gpp-fields animate-in">
-              <h3>Guardian details</h3>
+        <form onSubmit={handleSubmit}>
+          <div className="gpp-fields">
+            <h3>Owner details</h3>
+            <div className="gpp-grid">
               <label>
-                Your name *
+                Owner name *
                 <input
                   value={form.ownerName}
-                  onChange={(e) => update("ownerName", e.target.value)}
+                  onChange={(event) =>
+                    updateField("ownerName", event.target.value)
+                  }
                   className={errors.ownerName ? "invalid" : ""}
                 />
                 {errors.ownerName && <small>{errors.ownerName}</small>}
               </label>
+
               <label>
-                Contact number *
+                Phone number *
                 <input
                   value={form.phone}
-                  onChange={(e) => update("phone", e.target.value)}
+                  onChange={(event) => updateField("phone", event.target.value)}
                   className={errors.phone ? "invalid" : ""}
                 />
+                {errors.phone && <small>{errors.phone}</small>}
               </label>
+
               <label>
-                Address *
-                <input
-                  value={form.address}
-                  onChange={(e) => update("address", e.target.value)}
-                  className={errors.address ? "invalid" : ""}
-                />
-              </label>
-              <label>
-                City *
+                City
                 <input
                   value={form.city}
-                  onChange={(e) => update("city", e.target.value)}
-                  className={errors.city ? "invalid" : ""}
+                  onChange={(event) => updateField("city", event.target.value)}
                 />
               </label>
+
               <label>
                 Area / landmark
                 <input
                   value={form.location}
-                  onChange={(e) => update("location", e.target.value)}
+                  onChange={(event) =>
+                    updateField("location", event.target.value)
+                  }
                 />
               </label>
             </div>
-          )}
 
-          {step === 1 && (
-            <div className="gpp-fields animate-in">
-              <h3>Pet profile</h3>
+            <label>
+              Address
+              <textarea
+                rows={3}
+                value={form.address}
+                onChange={(event) => updateField("address", event.target.value)}
+              />
+            </label>
+
+            <h3>Pet details</h3>
+            <div className="gpp-grid">
               <label>
                 Pet name *
                 <input
                   value={form.petName}
-                  onChange={(e) => update("petName", e.target.value)}
+                  onChange={(event) => updateField("petName", event.target.value)}
                   className={errors.petName ? "invalid" : ""}
                 />
+                {errors.petName && <small>{errors.petName}</small>}
               </label>
+
               <label>
-                Type *
+                Pet type *
                 <select
                   value={form.petType}
-                  onChange={(e) => update("petType", e.target.value)}
+                  onChange={(event) => updateField("petType", event.target.value)}
                   className={errors.petType ? "invalid" : ""}
                 >
-                  <option value="">Select</option>
+                  <option value="">Select type</option>
                   <option value="dog">Dog</option>
                   <option value="cat">Cat</option>
+                  <option value="bird">Bird</option>
                   <option value="other">Other</option>
                 </select>
+                {errors.petType && <small>{errors.petType}</small>}
               </label>
+
               <label>
                 Breed
-                <input value={form.breed} onChange={(e) => update("breed", e.target.value)} />
+                <input
+                  value={form.breed}
+                  onChange={(event) => updateField("breed", event.target.value)}
+                />
               </label>
+
               <label>
                 Age *
                 <input
                   value={form.age}
-                  onChange={(e) => update("age", e.target.value)}
-                  placeholder="e.g. 2 years"
+                  onChange={(event) => updateField("age", event.target.value)}
+                  placeholder="Example: 2 years"
                   className={errors.age ? "invalid" : ""}
                 />
+                {errors.age && <small>{errors.age}</small>}
               </label>
+
               <label>
-                Gender *
+                Gender
                 <select
                   value={form.gender}
-                  onChange={(e) => update("gender", e.target.value)}
-                  className={errors.gender ? "invalid" : ""}
+                  onChange={(event) => updateField("gender", event.target.value)}
                 >
-                  <option value="">Select</option>
+                  <option value="">Select gender</option>
                   <option value="male">Male</option>
                   <option value="female">Female</option>
                   <option value="unknown">Unknown</option>
                 </select>
               </label>
+
               <label>
-                Vaccination status *
+                Vaccination
                 <select
                   value={form.vaccinated}
-                  onChange={(e) => update("vaccinated", e.target.value)}
-                  className={errors.vaccinated ? "invalid" : ""}
+                  onChange={(event) =>
+                    updateField("vaccinated", event.target.value)
+                  }
                 >
-                  <option value="">Select</option>
-                  <option value="yes">Up to date</option>
-                  <option value="partial">Partial / due soon</option>
+                  <option value="">Select status</option>
+                  <option value="yes">Vaccinated</option>
+                  <option value="partial">Partially vaccinated</option>
                   <option value="no">Not vaccinated</option>
                   <option value="unknown">Unknown</option>
                 </select>
               </label>
-              <label>
-                Health condition
-                <textarea
-                  rows={3}
-                  value={form.health}
-                  onChange={(e) => update("health", e.target.value)}
-                  placeholder="Medications, allergies, mobility…"
-                />
-              </label>
-              <label className="gpp-upload">
-                Pet photo *
-                <input type="file" accept="image/*" onChange={onFile} />
-                {errors.image && <small>{errors.image}</small>}
-                {preview && <img className="gpp-preview" src={preview} alt="" />}
-              </label>
             </div>
-          )}
 
-          {step === 2 && (
-            <div className="gpp-fields animate-in">
-              <h3>Final step</h3>
-              <label>
-                Reason for rehoming *
-                <textarea
-                  rows={5}
-                  value={form.reason}
-                  onChange={(e) => update("reason", e.target.value)}
-                  className={errors.reason ? "invalid" : ""}
-                />
-              </label>
-              <div className="gpp-summary">
-                <p>
-                  <strong>{form.petName}</strong> · {form.petType} · {form.age}
-                </p>
-                <p>
-                  {form.ownerName} · {form.phone} · {form.city}
-                </p>
-              </div>
-            </div>
-          )}
+            <label>
+              Health details
+              <textarea
+                rows={3}
+                value={form.health}
+                onChange={(event) => updateField("health", event.target.value)}
+                placeholder="Mention medication, allergy, or special care if needed."
+              />
+            </label>
+
+            <label>
+              Reason for giving pet *
+              <textarea
+                rows={4}
+                value={form.reason}
+                onChange={(event) => updateField("reason", event.target.value)}
+                className={errors.reason ? "invalid" : ""}
+              />
+              {errors.reason && <small>{errors.reason}</small>}
+            </label>
+
+            <label className="gpp-upload">
+              Pet image *
+              <input type="file" accept="image/*" onChange={handleFileChange} />
+              {errors.image && <small>{errors.image}</small>}
+              {preview && (
+                <img className="gpp-preview" src={preview} alt="Pet preview" />
+              )}
+            </label>
+          </div>
 
           <div className="gpp-actions">
-            {step > 0 && (
-              <button type="button" className="gpp-btn ghost" onClick={back}>
-                Back
-              </button>
-            )}
-            <button type="button" className="gpp-btn ghost" onClick={saveDraft}>
-              Save draft
+            <button
+              type="button"
+              className="gpp-btn ghost"
+              onClick={resetForm}
+              disabled={submitting}
+            >
+              Reset
             </button>
-            {step < 2 ? (
-              <button type="button" className="gpp-btn primary" onClick={next}>
-                Continue
-              </button>
-            ) : (
-              <button type="submit" className="gpp-btn primary" disabled={submitting}>
-                {submitting ? "Submitting…" : "Submit listing"}
-              </button>
-            )}
+            <button type="submit" className="gpp-btn primary" disabled={submitting}>
+              {submitting ? "Submitting..." : "Save request"}
+            </button>
           </div>
         </form>
       </div>

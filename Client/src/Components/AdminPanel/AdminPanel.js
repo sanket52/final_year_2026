@@ -5,7 +5,7 @@ import AdminScreen from './AdminScreen';
 
 const AdminPanel = () => {
   return (
-    <div>
+    <div className="admin-panel-page">
       <AdminNavBar/>
       <AdminScreen/>
       <AdminFooter/>

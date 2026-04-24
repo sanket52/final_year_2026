@@ -19,7 +19,8 @@ const LoginPage = () => {
   useEffect(() => {
     if (isAuthenticated) {
       const from = location.state?.from;
-      const path = from?.pathname || "/dashboard";
+      const path =
+        from?.pathname === "/admin" ? "/dashboard" : from?.pathname || "/dashboard";
       navigate(path, { replace: true, state: from?.state });
     }
   }, [isAuthenticated, navigate, location.state?.from, location.state?.from?.pathname]);
@@ -36,7 +37,7 @@ const LoginPage = () => {
       } else if (u.role === "admin" && from?.pathname === "/admin") {
         navigate("/admin", { replace: true });
       } else {
-        navigate(from?.pathname || "/dashboard", {
+        navigate(from?.pathname === "/admin" ? "/dashboard" : from?.pathname || "/dashboard", {
           replace: true,
           state: from?.state,
         });

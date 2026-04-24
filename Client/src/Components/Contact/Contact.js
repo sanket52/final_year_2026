@@ -8,7 +8,7 @@ const Contact = () => {
       <section className="contact-hero">
         <img
           src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=1200&q=80"
-          alt=""
+          alt="PawFinds support team"
           loading="lazy"
         />
         <div>
@@ -17,6 +17,14 @@ const Contact = () => {
             Reach {SITE.team[0].name} &amp; {SITE.team[1].name} for partnerships,
             adoption support, or emergency coordination.
           </p>
+          <div className="contact-hero-actions">
+            <a className="contact-hero-btn primary" href={SITE.phoneTel}>
+              Call now
+            </a>
+            <a className="contact-hero-btn" href={`mailto:${SITE.email}`}>
+              Send email
+            </a>
+          </div>
         </div>
       </section>
 
@@ -43,13 +51,23 @@ const Contact = () => {
         </a>
       </div>
 
-      <section className="contact-note">
-        <h2>Office hours</h2>
-        <p>
-          Rescue desk: 24×7 hotline via phone · Admin &amp; adoption counselling:
-          10:00 – 19:00 IST (Mon–Sat).
-        </p>
-      </section>
+      <div className="contact-bottom-grid">
+        <section className="contact-note">
+          <h2>Office hours</h2>
+          <p>
+            Rescue desk: 24x7 hotline via phone. Admin and adoption counselling:
+            10:00 - 19:00 IST, Monday to Saturday.
+          </p>
+        </section>
+        <section className="contact-note accent">
+          <h2>Best way to reach us</h2>
+          <p>
+            Emergency rescue requests are fastest by phone. For adoption support
+            or giving a pet for adoption, call or email and our team will get
+            back to you quickly.
+          </p>
+        </section>
+      </div>
     </div>
   );
 };

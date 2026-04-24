@@ -33,19 +33,13 @@ const signup = async (req, res) => {
     if (exists) {
       return res.status(409).json({ error: 'Email already registered.' });
     }
-    const role =
-      process.env.ADMIN_EMAIL &&
-      email.toLowerCase() === String(process.env.ADMIN_EMAIL).toLowerCase()
-        ? 'admin'
-        : 'user';
-
     const user = await User.create({
       name,
       email,
       phone: phone || '',
       password,
       city: city || '',
-      role
+      role: 'user'
     });
 
     const token = signToken(user);
@@ -169,6 +163,18 @@ const meRequests = async (req, res) => {
   }
 };
 
+const listUsers = async (req, res) => {
+  try {
+    const users = await User.find()
+      .select('-password -resetPasswordToken -resetPasswordExpires')
+      .sort({ createdAt: -1 })
+      .lean();
+    res.status(200).json(users);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 module.exports = {
   signup,
   login,
@@ -176,5 +182,6 @@ module.exports = {
   logout,
   forgotPassword,
   resetPassword,
-  meRequests
+  meRequests,
+  listUsers
 };

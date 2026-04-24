@@ -34,6 +34,15 @@
   border: 1px solid rgba(13, 92, 99, 0.08);
 }
 
+.gpp-note {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f3f8f8;
+  color: #084149;
+  line-height: 1.5;
+}
+
 .gpp-progress {
   display: flex;
   justify-content: space-between;
@@ -98,6 +107,13 @@
   font-family: "Varela Round", sans-serif;
   color: #084149;
   margin-bottom: 18px;
+  margin-top: 8px;
+}
+
+.gpp-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 16px;
 }
 
 .gpp-fields label {
@@ -197,6 +213,10 @@
 }
 
 @media (max-width: 600px) {
+  .gpp-grid {
+    grid-template-columns: 1fr;
+  }
+
   .gpp-progress {
     flex-direction: column;
   }

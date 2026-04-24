@@ -17,9 +17,10 @@ function AdoptForm(props) {
   const [livingSituation, setLivingSituation] = useState("");
   const [previousExperience, setPreviousExperience] = useState("");
   const [familyComposition, setFamilyComposition] = useState("");
-  const [formError, setFormError] = useState(false);
+  const [formError, setFormError] = useState("");
   const [emailError, setEmailError] = useState(false);
   const [ErrPopup, setErrPopup] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [SuccPopup, setSuccPopup] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -27,6 +28,7 @@ function AdoptForm(props) {
     if (user) {
       setEmail(user.email || "");
       setUserName(user.name || "");
+      setPhoneNo(user.phone || "");
     }
   }, [user]);
 
@@ -61,16 +63,12 @@ function AdoptForm(props) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setEmailError(false);
+    setFormError("");
+    setSubmitError("");
+    setErrPopup(false);
 
-    if (
-      !email ||
-      !phoneNo ||
-      !livingSituation ||
-      !previousExperience ||
-      !familyComposition ||
-      !userName.trim()
-    ) {
-      setFormError(true);
+    if (!email.trim() || !phoneNo.trim() || !userName.trim()) {
+      setFormError("Please fill your name, email, and phone number.");
       return;
     }
 
@@ -93,23 +91,27 @@ function AdoptForm(props) {
         headers: authHeaders(),
         body: JSON.stringify({
           petId,
-          email,
-          phoneNo,
-          livingSituation,
-          previousExperience,
-          familyComposition,
+          email: email.trim(),
+          phoneNo: phoneNo.trim(),
+          livingSituation: livingSituation.trim(),
+          previousExperience: previousExperience.trim(),
+          familyComposition: familyComposition.trim(),
           userName: userName.trim(),
-          address,
-          message,
+          address: address.trim(),
+          message: message.trim(),
         }),
       });
 
+      const data = await response.json().catch(() => ({}));
+
       if (!response.ok) {
+        setSubmitError(data.error || "Could not submit adoption request.");
         setErrPopup(true);
         return;
       }
       setSuccPopup(true);
     } catch (err) {
+      setSubmitError("Network error. Please try again.");
       setErrPopup(true);
       console.error(err);
     } finally {
@@ -117,8 +119,7 @@ function AdoptForm(props) {
     }
 
     setEmailError(false);
-    setFormError(false);
-    setPhoneNo("");
+    setFormError("");
     setLivingSituation("");
     setPreviousExperience("");
     setFamilyComposition("");
@@ -226,7 +227,7 @@ function AdoptForm(props) {
               />
             </div>
             {formError && (
-              <p className="error-message">Please fill out all required fields.</p>
+              <p className="error-message">{formError}</p>
             )}
             <button
               disabled={isSubmitting}
@@ -238,7 +239,7 @@ function AdoptForm(props) {
             {ErrPopup && (
               <div className="popup">
                 <div className="popup-content">
-                  <h4>Oops!... Connection Error.</h4>
+                  <h4>{submitError || "Oops!... Connection Error."}</h4>
                 </div>
                 <button
                   type="button"
