@@ -9,9 +9,9 @@ This platform makes the **pet adoption journey simple, organized, and trustworth
 
 ---
 
-## 🎥 Watch PawFinds in Action
 
-[▶ Watch Demo Video](https://www.youtube.com/watch?v=wXQpAoX7_QY)
+
+
 
 ---
 
