@@ -60,11 +60,13 @@ const AdoptingRequests = () => {
 
   const groupedByPetId = useMemo(() => {
     const g = {};
-    forms.forEach((f) => {
+    forms
+      .filter((f) => String(f.status || "pending").toLowerCase() === "pending")
+      .forEach((f) => {
       const pid = String(f.petId);
       if (!g[pid]) g[pid] = [];
       g[pid].push(f);
-    });
+      });
     return g;
   }, [forms]);
 
@@ -134,8 +136,9 @@ const AdoptingRequests = () => {
                 </h2>
                 {!pet && (
                   <p style={{ fontSize: "0.85rem", color: "#666" }}>
-                    External or API listing (no shelter pet record). Approve still clears
-                    queued requests for this ID.
+                    External or API listing. Approving this request updates the
+                    adoption request status, but there is no local shelter pet
+                    record to move into adopted history.
                   </p>
                 )}
               </div>
