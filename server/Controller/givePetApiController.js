@@ -62,4 +62,33 @@ const listAll = async (req, res) => {
   }
 };
 
-module.exports = { createGivePet, listAll };
+const updateStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const allowedStatuses = ["pending", "approved", "rejected"];
+    if (!allowedStatuses.includes(String(status || "").toLowerCase())) {
+      return res.status(400).json({ error: "Invalid status." });
+    }
+
+    const updated = await GivePet.findByIdAndUpdate(
+      id,
+      { status: String(status).toLowerCase() },
+      { new: true }
+    ).lean();
+
+    if (!updated) {
+      return res.status(404).json({ error: "Request not found." });
+    }
+
+    res.status(200).json({
+      message: `Give-a-pet request marked as ${updated.status}.`,
+      request: updated,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+module.exports = { createGivePet, listAll, updateStatus };

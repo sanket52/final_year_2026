@@ -24,6 +24,7 @@ const AdoptedCards = (props) => {
         setShowErrorPopup(true);
         throw new Error('Failed to delete pet');
       } else {
+        await props.updateCards();
         setshowDeletedSuccess(true);
       }
     } catch (err) {
@@ -89,7 +90,6 @@ const AdoptedCards = (props) => {
             </div>
             <button onClick={() => {
               setshowDeletedSuccess(!showDeletedSuccess)
-              props.updateCards()
             }} className='close-btn'>
               Close <i className="fa fa-times"></i>
             </button>

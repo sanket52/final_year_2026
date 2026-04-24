@@ -7,6 +7,7 @@ const PostingPets = () => {
   const [loading, setLoading] = useState(true)
 
   const fetchRequests = async () => {
+    setLoading(true)
     try {
       const response = await fetch(`${API_BASE}/requests`)
       if (!response.ok) {

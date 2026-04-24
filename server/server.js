@@ -7,7 +7,6 @@ const { connectDB } = require('./config/db');
 
 const petRouter = require('./Routes/PetRoute');
 const AdoptFormRoute = require('./Routes/AdoptFormRoute');
-const AdminRoute = require('./Routes/AdminRoute');
 const apiAuthRoutes = require('./Routes/apiAuthRoutes');
 const apiEmergencyRoutes = require('./Routes/apiEmergencyRoutes');
 const apiAdoptRoutes = require('./Routes/apiAdoptRoutes');
@@ -52,7 +51,6 @@ app.use('/api/give-pet', apiGivePetRoutes);
 
 app.use(petRouter);
 app.use('/form', AdoptFormRoute);
-app.use('/admin', AdminRoute);
 
 const PORT = process.env.PORT || 4000;
 

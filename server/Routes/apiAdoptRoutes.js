@@ -3,7 +3,9 @@ const {
   createRequest,
   listAll,
   removeOne,
-  deleteManyByPetId
+  deleteManyByPetId,
+  updateStatus,
+  approveRequest
 } = require('../Controller/adoptApiController');
 const { authRequired, adminOnly } = require('../middleware/authMiddleware');
 
@@ -11,6 +13,8 @@ const router = express.Router();
 
 router.post('/request', authRequired, createRequest);
 router.get('/all', authRequired, adminOnly, listAll);
+router.patch('/:id/status', authRequired, adminOnly, updateStatus);
+router.patch('/:id/approve', authRequired, adminOnly, approveRequest);
 router.delete('/many/:petId', authRequired, adminOnly, deleteManyByPetId);
 router.delete('/:id', authRequired, adminOnly, removeOne);
 

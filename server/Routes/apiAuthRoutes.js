@@ -5,6 +5,7 @@ const { authRequired, adminOnly } = require('../middleware/authMiddleware');
 
 router.post('/signup', auth.signup);
 router.post('/login', auth.login);
+router.post('/admin/login', auth.adminLogin);
 router.get('/profile', authRequired, auth.profile);
 router.post('/logout', auth.logout);
 router.post('/forgot-password', auth.forgotPassword);

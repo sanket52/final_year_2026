@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import postPet from "./images/postPet.png";
+import { API_BASE, authHeadersMultipart } from "../../utils/api";
 
 const PostPetSection = () => {
   const [name, setName] = useState("");
@@ -81,8 +82,9 @@ const PostPetSection = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:4000/services", {
+      const response = await fetch(`${API_BASE}/services`, {
         method: "POST",
+        headers: authHeadersMultipart(),
         body: formData,
       });
 

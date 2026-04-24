@@ -1,7 +1,7 @@
 import React from "react";
-import { Navigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import AdminPanel from "../AdminPanel/AdminPanel";
+import AdminLogin from "../AdminPanel/AdminLogin";
 
 const AdminGate = () => {
   const { user, loading } = useAuth();
@@ -15,21 +15,11 @@ const AdminGate = () => {
   }
 
   if (!user) {
-    return (
-      <Navigate
-        to="/login"
-        replace
-        state={{
-          from: { pathname: "/admin" },
-          adminEntry: true,
-          message: "Please login with an admin account.",
-        }}
-      />
-    );
+    return <AdminLogin />;
   }
 
   if (user.role !== "admin") {
-    return <Navigate to="/" replace />;
+    return <AdminLogin />;
   }
 
   return <AdminPanel />;

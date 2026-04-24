@@ -3,6 +3,14 @@ const Pet = require('../Model/PetModel');
 const fs = require('fs');
 const path = require('path');
 
+const normalizePetStatus = (value) => {
+  const status = String(value || '').trim().toLowerCase();
+  if (status === 'approved') return 'Approved';
+  if (status === 'adopted') return 'Adopted';
+  if (status === 'rejected') return 'Rejected';
+  return 'Pending';
+};
+
 const postPetRequest = async (req, res) => {
   try {
     const { name, age, area, justification, email, phone, type } = req.body;
@@ -17,7 +25,8 @@ const postPetRequest = async (req, res) => {
       phone,
       type,
       filename,
-      status: 'Pending'
+      status: 'Pending',
+      userId: req.user?.userId || null
     });
 
     res.status(200).json(pet);
@@ -30,7 +39,19 @@ const approveRequest = async (req, res) => {
   try {
     const id = req.params.id;
     const { email, phone, status } = req.body;
-    const pet = await Pet.findByIdAndUpdate(id, { email, phone, status }, { new: true });
+    const updates = {
+      status: normalizePetStatus(status || 'Approved')
+    };
+
+    if (typeof email === 'string' && email.trim()) {
+      updates.email = email.trim();
+    }
+
+    if (typeof phone === 'string' && phone.trim()) {
+      updates.phone = phone.trim();
+    }
+
+    const pet = await Pet.findByIdAndUpdate(id, updates, { new: true });
 
     if (!pet) {
       return res.status(404).json({ error: 'Pet not found' });
@@ -49,7 +70,12 @@ const allPets = async (reqStatus, req, res) => {
         error: 'Database is not connected. Check mongooseURL in server/.env and that MongoDB is reachable.'
       });
     }
-    const data = await Pet.find({ status: reqStatus }).sort({ updatedAt: -1 }).lean().exec();
+    const data = await Pet.find({
+      status: { $regex: new RegExp(`^${reqStatus}$`, 'i') }
+    })
+      .sort({ updatedAt: -1 })
+      .lean()
+      .exec();
     res.status(200).json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -74,9 +100,23 @@ const deletePost = async (req, res) => {
   }
 };
 
+const rejectRequest = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const pet = await Pet.findByIdAndUpdate(id, { status: normalizePetStatus('Rejected') }, { new: true });
+    if (!pet) {
+      return res.status(404).json({ error: 'Pet not found' });
+    }
+    res.status(200).json(pet);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 module.exports = {
   postPetRequest,
   approveRequest,
   deletePost,
-  allPets
+  allPets,
+  rejectRequest
 };

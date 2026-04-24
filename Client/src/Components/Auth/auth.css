@@ -220,6 +220,51 @@
   line-height: 1.6;
 }
 
+.dash-section li {
+  margin-bottom: 10px;
+}
+
+.dash-status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.dash-status-pending {
+  background: #eef3f7;
+  color: #315365;
+}
+
+.dash-status-approved {
+  background: #e6f6ec;
+  color: #1e7a45;
+}
+
+.dash-status-received,
+.dash-status-in-progress {
+  background: #e9f3fb;
+  color: #24597a;
+}
+
+.dash-status-resolved {
+  background: #e5f6ee;
+  color: #1f7a50;
+}
+
+.dash-status-rejected {
+  background: #fdecec;
+  color: #b23a3a;
+}
+
+.dash-subtext {
+  margin-top: 4px;
+  color: #6b7280;
+  font-size: 0.92rem;
+}
+
 .dash-empty {
   color: #888;
   font-size: 0.95rem;

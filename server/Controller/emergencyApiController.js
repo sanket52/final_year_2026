@@ -40,4 +40,26 @@ const listAll = async (req, res) => {
   }
 };
 
-module.exports = { createReport, listAll };
+const updateStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const nextStatus = String(status || '').toLowerCase();
+    if (!['received', 'in-progress', 'resolved', 'rejected'].includes(nextStatus)) {
+      return res.status(400).json({ error: 'Invalid status.' });
+    }
+    const row = await EmergencyReport.findByIdAndUpdate(
+      id,
+      { status: nextStatus },
+      { new: true }
+    ).lean();
+    if (!row) {
+      return res.status(404).json({ error: 'Report not found.' });
+    }
+    res.status(200).json({ message: `Emergency report marked as ${nextStatus}.`, report: row });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+module.exports = { createReport, listAll, updateStatus };

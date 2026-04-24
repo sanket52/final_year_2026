@@ -5,6 +5,7 @@ const User = require('../Model/UserModel');
 const AdoptQuery = require('../Model/AdoptQueryModel');
 const GivePet = require('../Model/GivePetModel');
 const EmergencyReport = require('../Model/EmergencyReportModel');
+const Pet = require('../Model/PetModel');
 const { JWT_SECRET } = require('../middleware/authMiddleware');
 
 const signToken = (user) =>
@@ -17,6 +18,28 @@ const signToken = (user) =>
     },
     JWT_SECRET,
     { expiresIn: '7d' }
+  );
+
+const buildAdminProfile = () => ({
+  _id: 'admin-session',
+  name: process.env.ADMIN_NAME || 'Administrator',
+  email: process.env.ADMIN_EMAIL || 'admin@pawfinds.local',
+  phone: process.env.ADMIN_PHONE || '',
+  city: process.env.ADMIN_CITY || '',
+  role: 'admin'
+});
+
+const signAdminToken = () =>
+  jwt.sign(
+    {
+      userId: 'admin-session',
+      email: process.env.ADMIN_EMAIL || 'admin@pawfinds.local',
+      role: 'admin',
+      name: process.env.ADMIN_NAME || 'Administrator',
+      adminAuth: true
+    },
+    JWT_SECRET,
+    { expiresIn: '12h' }
   );
 
 const signup = async (req, res) => {
@@ -65,21 +88,47 @@ const login = async (req, res) => {
     if (!ok) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
-    const token = signToken(user);
-    res.status(200).json({ token, user: user.toSafeJSON() });
+    const safeUser = { ...user.toSafeJSON(), role: 'user' };
+    const token = signToken(safeUser);
+    res.status(200).json({ token, user: safeUser });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
   }
 };
 
+const adminLogin = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const expectedUsername = process.env.ADMIN_USERNAME || 'admin';
+    const expectedPassword = process.env.ADMIN_PASSWORD || '123';
+
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password are required.' });
+    }
+
+    if (username !== expectedUsername || password !== expectedPassword) {
+      return res.status(401).json({ error: 'Invalid admin credentials.' });
+    }
+
+    const adminUser = buildAdminProfile();
+    const token = signAdminToken();
+    return res.status(200).json({ token, user: adminUser });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+
 const profile = async (req, res) => {
   try {
+    if (req.user?.adminAuth && req.user?.role === 'admin') {
+      return res.status(200).json(buildAdminProfile());
+    }
     const user = await User.findById(req.user.userId).select('-password');
     if (!user) {
       return res.status(404).json({ error: 'User not found.' });
     }
-    res.status(200).json(user);
+    res.status(200).json({ ...user.toObject(), role: 'user' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -157,7 +206,8 @@ const meRequests = async (req, res) => {
       GivePet.find({ userId: uid }).sort({ createdAt: -1 }).lean(),
       EmergencyReport.find({ userId: uid }).sort({ createdAt: -1 }).lean()
     ]);
-    res.status(200).json({ adoptionRequests, givePetRequests, emergencyReports });
+    const petRequests = await Pet.find({ userId: uid }).sort({ createdAt: -1 }).lean();
+    res.status(200).json({ adoptionRequests, givePetRequests, emergencyReports, petRequests });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -178,6 +228,7 @@ const listUsers = async (req, res) => {
 module.exports = {
   signup,
   login,
+  adminLogin,
   profile,
   logout,
   forgotPassword,

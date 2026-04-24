@@ -11,6 +11,7 @@ const adoptQuerySchema = new mongoose.Schema(
     livingSituation: { type: String, default: '' },
     previousExperience: { type: String, default: '' },
     familyComposition: { type: String, default: '' },
+    status: { type: String, default: 'pending' },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }
   },
   { timestamps: true, bufferCommands: false }

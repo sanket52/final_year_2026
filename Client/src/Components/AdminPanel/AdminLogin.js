@@ -1,68 +1,57 @@
-import React, { useState, useEffect } from "react";
-import AdminPanel from "./AdminPanel";
+import React, { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const AdminLogin = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { loginAdmin } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [loginSuccess, setLoginSuccess] = useState(false);
-  const [showErrorMessage, setShowErrorMessage] = useState(false);
-  const [usersData, setUsersData] = useState([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchUsersData = async () => {
-      try {
-        const response = await fetch('http://localhost:4000/admin/credentials');
-        if (!response.ok) {
-          throw new Error('Failed to fetch');
-        }
-        const data = await response.json();
-        setUsersData(data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-
-    fetchUsersData();
-  }, []);
-
-  const handleLogin = () => {
-    const user = usersData.username === username && usersData.password === password;
-    if (user) {
-      setLoginSuccess(true);
-      setShowErrorMessage(false);
-    } else {
-      setLoginSuccess(false);
-      setShowErrorMessage(true);
+  const handleLogin = async (event) => {
+    event.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      await loginAdmin(username, password);
+      navigate(location.state?.from?.pathname || "/admin", { replace: true });
+    } catch (err) {
+      setError(err.message || "Admin login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      {loginSuccess ? (
-        <AdminPanel />
-      ) : (
-        <div className="login-body">
-          <div className="login-container">
-            <h2>Admin Login</h2>
-            <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              />
-              {showErrorMessage && (
-                <p className="error-message">Incorrect username or password</p>
-              )}
-            <button className="float-right" onClick={handleLogin}>Login</button>
-          </div>
-        </div>
-      )}
+    <div className="login-body">
+      <form className="login-container" onSubmit={handleLogin}>
+        <h2>Admin Login</h2>
+        <p style={{ marginBottom: "12px", textAlign: "center" }}>
+          This login is only for the platform administrator to view all records
+          and all user requests.
+        </p>
+        <input
+          type="text"
+          placeholder="Admin username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Admin password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        {error && <p className="error-message">{error}</p>}
+        <button type="submit" disabled={loading}>
+          {loading ? "Signing in..." : "Login as Admin"}
+        </button>
+      </form>
     </div>
   );
 };

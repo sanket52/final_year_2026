@@ -59,6 +59,21 @@ export function AuthProvider({ children }) {
     return data.user;
   }, []);
 
+  const loginAdmin = useCallback(async (username, password) => {
+    const res = await fetch(`${API_BASE}/api/auth/admin/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || "Admin login failed");
+    }
+    setToken(data.token);
+    setUser(data.user);
+    return data.user;
+  }, []);
+
   const signup = useCallback(async (payload) => {
     const res = await fetch(`${API_BASE}/api/auth/signup`, {
       method: "POST",
@@ -85,11 +100,12 @@ export function AuthProvider({ children }) {
       loading,
       isAuthenticated: !!user,
       login,
+      loginAdmin,
       signup,
       logout,
       refreshProfile: loadProfile,
     }),
-    [user, loading, login, signup, logout, loadProfile]
+    [user, loading, login, loginAdmin, signup, logout, loadProfile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

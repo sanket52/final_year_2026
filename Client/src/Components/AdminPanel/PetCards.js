@@ -40,6 +40,7 @@ const PetCards = (props) => {
       if (!response.ok) {
         setShowErrorPopup(true);
       } else {
+        await props.updateCards();
         setShowApproved(true);
       }
     } catch (err) {
@@ -50,6 +51,10 @@ const PetCards = (props) => {
   }
 
   const deleteFormsAdoptedPet = async () => {
+    if (props.approveBtn) {
+      handleReject();
+      return;
+    }
     setIsDeleting(true)
     try {
       const deleteResponses = await fetch(`${API_BASE}/form/delete/many/${props.pet._id}`, {
@@ -66,14 +71,15 @@ const PetCards = (props) => {
 
   const handleReject = async () => {
     try {
-      const response = await fetch(`${API_BASE}/delete/${props.pet._id}`, {
-        method: 'DELETE'
-      })
+      const response = props.approveBtn
+        ? await fetch(`${API_BASE}/pet-requests/${props.pet._id}/reject`, { method: 'PATCH' })
+        : await fetch(`${API_BASE}/delete/${props.pet._id}`, { method: 'DELETE' })
 
       if (!response.ok) {
         setShowErrorPopup(true);
-        throw new Error('Failed to delete pet');
+        throw new Error('Failed to update pet');
       } else {
+        await props.updateCards();
         setshowDeletedSuccess(true);
       }
     } catch (err) {
@@ -152,7 +158,6 @@ const PetCards = (props) => {
             </div>
             <button onClick={() => {
               setShowApproved(!showApproved)
-              props.updateCards()
             }} className='close-btn'>
               Close <i className="fa fa-times"></i>
             </button>
@@ -162,11 +167,10 @@ const PetCards = (props) => {
         {showDeletedSuccess && (
           <div className='popup'>
             <div className='popup-content'>
-              <p>Deleted Successfully from Database...</p>
+              <p>{props.approveBtn ? 'Pet request rejected successfully.' : 'Deleted Successfully from Database...'}</p>
             </div>
             <button onClick={() => {
               setshowDeletedSuccess(!showDeletedSuccess)
-              props.updateCards()
             }} className='close-btn'>
               Close <i className="fa fa-times"></i>
             </button>

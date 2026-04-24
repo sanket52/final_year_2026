@@ -45,17 +45,18 @@ const FormCard = (props) => {
         }
       }
 
-      const del = await fetch(
-        `${API_BASE}/api/adopt/many/${encodeURIComponent(props.form.petId)}`,
+      const approveRes = await fetch(
+        `${API_BASE}/api/adopt/${props.form._id}/approve`,
         {
-          method: "DELETE",
+          method: "PATCH",
           headers: authHeaders(),
         }
       );
-      if (!del.ok) {
+      if (!approveRes.ok) {
         setShowErrorPopup(true);
         return;
       }
+      await props.updateCards();
       setShowApproved(true);
     } catch {
       setShowErrorPopup(true);
@@ -67,15 +68,17 @@ const FormCard = (props) => {
   const handleReject = async () => {
     setIsDeleting(true);
     try {
-      const response = await fetch(`${API_BASE}/api/adopt/${props.form._id}`, {
-        method: "DELETE",
+      const response = await fetch(`${API_BASE}/api/adopt/${props.form._id}/status`, {
+        method: "PATCH",
         headers: authHeaders(),
+        body: JSON.stringify({ status: "rejected" }),
       });
 
       if (!response.ok) {
         setShowErrorPopup(true);
-        throw new Error("Failed to delete form");
+        throw new Error("Failed to reject form");
       }
+      await props.updateCards();
       setShowDeletedSuccess(true);
     } catch (err) {
       setShowErrorPopup(true);
@@ -171,7 +174,6 @@ const FormCard = (props) => {
             </div>
             <button
               onClick={() => {
-                props.updateCards();
                 setShowApproved(!showApproved);
               }}
               className="close-btn"
@@ -189,7 +191,6 @@ const FormCard = (props) => {
             <button
               onClick={() => {
                 setShowDeletedSuccess(!showDeletedSuccess);
-                props.updateCards();
               }}
               className="close-btn"
             >

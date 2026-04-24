@@ -1,7 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const { createReport, listAll } = require('../Controller/emergencyApiController');
+const { createReport, listAll, updateStatus } = require('../Controller/emergencyApiController');
 const { authRequired, adminOnly } = require('../middleware/authMiddleware');
 
 const storage = multer.diskStorage({
@@ -35,5 +35,6 @@ router.post('/report', authRequired, (req, res, next) => {
 }, createReport);
 
 router.get('/all', authRequired, adminOnly, listAll);
+router.patch('/:id/status', authRequired, adminOnly, updateStatus);
 
 module.exports = router;

@@ -29,6 +29,7 @@ const createRequest = async (req, res) => {
       userName: userName || '',
       address: address || '',
       message: message || '',
+      status: 'pending',
       userId: req.user.userId
     });
 
@@ -71,4 +72,49 @@ const deleteManyByPetId = async (req, res) => {
   }
 };
 
-module.exports = { createRequest, listAll, removeOne, deleteManyByPetId };
+const updateStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const nextStatus = String(status || '').toLowerCase();
+    if (!['pending', 'approved', 'rejected'].includes(nextStatus)) {
+      return res.status(400).json({ error: 'Invalid status.' });
+    }
+
+    const doc = await AdoptQuery.findByIdAndUpdate(
+      id,
+      { status: nextStatus },
+      { new: true }
+    );
+    if (!doc) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+    res.status(200).json({ message: `Adoption request marked as ${nextStatus}.`, request: doc });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const approveRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const doc = await AdoptQuery.findById(id);
+    if (!doc) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+
+    await AdoptQuery.updateMany(
+      { petId: doc.petId, _id: { $ne: doc._id } },
+      { status: 'rejected' }
+    );
+
+    doc.status = 'approved';
+    await doc.save();
+
+    res.status(200).json({ message: 'Adoption request approved.', request: doc });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+module.exports = { createRequest, listAll, removeOne, deleteManyByPetId, updateStatus, approveRequest };
