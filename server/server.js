@@ -35,9 +35,59 @@ const requireMongo = (req, res, next) => {
   res.status(503).json({ error: dbUnavailableMessage });
 };
 
-app.use(cors());
+const configuredOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const allowedOrigins = new Set([
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'https://final-year-2026-git-main-sanket52s-projects.vercel.app',
+  ...configuredOrigins,
+]);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.has(origin) || origin.endsWith('.vercel.app')) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+  })
+);
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+
+app.get('/', (req, res) => {
+  const isDbConnected =
+    mongoose.connection.readyState === 1 && !!mongoose.connection.db;
+
+  res.status(isDbConnected ? 200 : 503).json({
+    ok: isDbConnected,
+    service: 'PawFinds API',
+    database: isDbConnected ? 'connected' : 'disconnected',
+    message: isDbConnected
+      ? 'API is running.'
+      : dbUnavailableMessage,
+  });
+});
+
+app.get('/health', (req, res) => {
+  const isDbConnected =
+    mongoose.connection.readyState === 1 && !!mongoose.connection.db;
+
+  res.status(isDbConnected ? 200 : 503).json({
+    ok: isDbConnected,
+    database: isDbConnected ? 'connected' : 'disconnected',
+  });
+});
 
 app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use('/api-files/emergency', express.static(emergencyUploadDir));

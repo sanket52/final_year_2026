@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import AdoptForm from '../AdoptForm/AdoptForm';
 import { formatDistanceToNow } from 'date-fns';
+import { API_BASE } from '../../utils/api';
 
 const PetsViewer = (props) => {
   const [showPopup, setShowPopup] = useState(false);
@@ -15,9 +16,9 @@ const PetsViewer = (props) => {
   };
 
   return (
-    <div className='pet-view-card'>
+      <div className='pet-view-card'>
       <div className='pet-card-pic'>
-        <img src={`http://localhost:4000/images/${props.pet.filename}`} alt={props.pet.name} />
+        <img src={`${API_BASE}/images/${props.pet.filename}`} alt={props.pet.name} />
       </div>
       <div className='pet-card-details'>
         <h2>{props.pet.name}</h2>

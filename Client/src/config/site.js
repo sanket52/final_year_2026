@@ -15,5 +15,11 @@ export const SITE = {
   },
 };
 
-export const API_BASE =
-  process.env.REACT_APP_API_URL || "http://localhost:4000";
+const rawApiBase =
+  process.env.REACT_APP_API_URL ||
+  (typeof window !== "undefined" &&
+  /localhost|127\.0\.0\.1/.test(window.location.hostname)
+    ? "http://localhost:4000"
+    : "https://final-year-2026-3.onrender.com");
+
+export const API_BASE = rawApiBase.replace(/\/+$/, "");
