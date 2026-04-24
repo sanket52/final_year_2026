@@ -44,7 +44,6 @@ const signAdminToken = () =>
 
 const signup = async (req, res) => {
   try {
-    console.log('signup body', req.body);
     const { name, email, phone, password, city } = req.body;
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Name, email, and password are required.' });
@@ -75,7 +74,6 @@ const signup = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    console.log('login body', req.body);
     const { email, password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password required.' });
@@ -140,7 +138,6 @@ const logout = (req, res) => {
 
 const forgotPassword = async (req, res) => {
   try {
-    console.log('forgot body', req.body);
     const { email } = req.body;
     if (!email) {
       return res.status(400).json({ error: 'Email required.' });
@@ -166,7 +163,6 @@ const forgotPassword = async (req, res) => {
 
 const resetPassword = async (req, res) => {
   try {
-    console.log('reset body', req.body);
     const { token, password } = req.body;
     if (!token || !password) {
       return res.status(400).json({ error: 'Token and new password required.' });

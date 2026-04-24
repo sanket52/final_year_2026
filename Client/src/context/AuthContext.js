@@ -32,6 +32,16 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const controller = new AbortController();
+
+    // Wake the deployed backend early so auth requests are less likely
+    // to hit a Render cold start when the user submits the form.
+    fetch(`${API_BASE}/health`, { signal: controller.signal }).catch(() => {});
+
+    return () => controller.abort();
+  }, []);
+
   const loadProfile = useCallback(async () => {
     const t = getToken();
     if (!t) {
