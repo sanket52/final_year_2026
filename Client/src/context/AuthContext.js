@@ -10,6 +10,24 @@ import { API_BASE, getToken, setToken, authHeaders } from "../utils/api";
 
 const AuthContext = createContext(null);
 
+async function requestJson(url, options, fallbackMessage) {
+  let res;
+  try {
+    res = await fetch(url, options);
+  } catch {
+    throw new Error(
+      "Cannot reach the server. If this is on mobile, the backend may be down, waking up on Render, or blocked by network/CORS."
+    );
+  }
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || fallbackMessage);
+  }
+
+  return data;
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -45,45 +63,45 @@ export function AuthProvider({ children }) {
   }, [loadProfile]);
 
   const login = useCallback(async (email, password) => {
-    const res = await fetch(`${API_BASE}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.error || "Login failed");
-    }
+    const data = await requestJson(
+      `${API_BASE}/api/auth/login`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      },
+      "Login failed"
+    );
     setToken(data.token);
     setUser(data.user);
     return data.user;
   }, []);
 
   const loginAdmin = useCallback(async (username, password) => {
-    const res = await fetch(`${API_BASE}/api/auth/admin/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.error || "Admin login failed");
-    }
+    const data = await requestJson(
+      `${API_BASE}/api/auth/admin/login`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      },
+      "Admin login failed"
+    );
     setToken(data.token);
     setUser(data.user);
     return data.user;
   }, []);
 
   const signup = useCallback(async (payload) => {
-    const res = await fetch(`${API_BASE}/api/auth/signup`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.error || "Signup failed");
-    }
+    const data = await requestJson(
+      `${API_BASE}/api/auth/signup`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      },
+      "Signup failed"
+    );
     setToken(data.token);
     setUser(data.user);
     return data.user;
